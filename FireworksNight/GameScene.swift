@@ -12,6 +12,7 @@ import GameplayKit
 class GameScene: SKScene {
     var gameTimer: Timer?
     var fireworks = [SKNode]()
+    var scoreLabel: SKLabelNode!
     
     let leftEdge = -22
     let bottomEdge = -22
@@ -19,7 +20,14 @@ class GameScene: SKScene {
     
     var score = 0 {
         didSet {
-            // score label
+            scoreLabel?.text = "Score: \(score)"
+        }
+    }
+    var numberOfLaunches = 0 {
+        didSet {
+            if numberOfLaunches > 10 {
+                gameTimer?.invalidate()
+            }
         }
     }
     
@@ -29,6 +37,12 @@ class GameScene: SKScene {
         background.blendMode = .replace
         background.zPosition = -1
         addChild(background)
+        
+        scoreLabel = SKLabelNode(fontNamed: "AppleSDGothicNeo-Medium")
+        scoreLabel.position = CGPoint(x: 8, y: 8)
+        scoreLabel.horizontalAlignmentMode = .left
+        scoreLabel.text = "Score: 0"
+        addChild(scoreLabel)
 
         gameTimer = Timer.scheduledTimer(timeInterval: 6, target: self, selector: #selector(launchFireworks), userInfo: nil, repeats: true)
     }
@@ -55,6 +69,7 @@ class GameScene: SKScene {
     
     @objc func launchFireworks() {
         let movementAmount: CGFloat = 1800
+        numberOfLaunches += 1
 
         switch Int.random(in: 0...3) {
         case 0:
@@ -151,6 +166,7 @@ class GameScene: SKScene {
     func explode(firework: SKNode) {
         if let emitter = SKEmitterNode(fileNamed: "explode") {
             emitter.position = firework.position
+            emitter.run(SKAction.sequence([SKAction.wait(forDuration: 1), SKAction.removeFromParent()]))
             addChild(emitter)
         }
         
